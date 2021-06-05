@@ -28,15 +28,20 @@ export function resetDetailMovies() {
   };
 }
 
-export function getMovies(DATA, page) {
-  console.log("PAGE", page);
+export function getMovies(DATA, page, initial) {
+  console.log("PAGE: ", page);
   const url =
     "http://www.omdbapi.com/?apikey=faf7e5bb&s=" + DATA + "&page=" + page;
+  let source = axios.CancelToken.source();
   return (dispatch) =>
-    axios.get(url).then((res) => {
-      //   console.log("res", res.data);
-      dispatch(movies(res.data));
-    });
+    axios
+      .get(url, {
+        cancelToken: source.token,
+      })
+      .then((res) => {
+        initial === 1 && dispatch(movies(res.data));
+        return res.data;
+      });
 }
 
 export function getDetailMovies(ID) {
@@ -49,17 +54,6 @@ export function getDetailMovies(ID) {
 
 export function autoComplete(DATA) {
   const url = "http://www.omdbapi.com/?apikey=faf7e5bb&s=" + DATA + "&page=1";
-  return (dispatch) =>
-    axios.get(url).then((res) => {
-      //   console.log("res", res.data);
-      return res.data;
-    });
-}
-
-export function loadMore(DATA, page) {
-  console.log("PAGE", page);
-  const url =
-    "http://www.omdbapi.com/?apikey=faf7e5bb&s=" + DATA + "&page=" + page;
   return (dispatch) =>
     axios.get(url).then((res) => {
       return res.data;

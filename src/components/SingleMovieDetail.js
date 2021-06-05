@@ -58,16 +58,11 @@ function SingleMovieDetail({ detailMovies }) {
           </p>
         </Col>
       </Row>
-      <Row>
-        <Col>1 of 3</Col>
-        <Col xs={5}>2 of 3 (wider)</Col>
-        <Col>3 of 3</Col>
-      </Row>
     </Container>
   );
 }
 
-const mapStateToProps = (state /*, ownProps*/) => {
+const mapStateToProps = (state) => {
   return {
     detailMovies: state.detailMovies,
   };

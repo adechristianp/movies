@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef, useCallback } from "react";
 import { useDispatch, connect } from "react-redux";
 import { useHistory } from "react-router-dom";
 import {
@@ -18,50 +18,95 @@ import {
 import "bootstrap/dist/css/bootstrap.min.css";
 import { getMovies, resetMovies, loadMore } from "../_actions/movies";
 
-function App({ movies }) {
+function App({ listMovies }) {
   const dispatch = useDispatch();
   const history = useHistory();
   const [preview, setPreview] = useState([]);
+  const [movies, setMovies] = useState([]);
+  const [max, setMax] = useState(false);
   const [page, setPage] = useState(1);
   const [search, setSearch] = useState("Batman");
   const [show, setShow] = useState(false);
+  const [loading, setLoading] = useState(false);
+
+  const observer = useRef();
+  const lastBookElementRef = useCallback((node) => {
+    if (loading) return;
+    if (max) return;
+    if (observer.current) observer.current.disconnect();
+    observer.current = new IntersectionObserver((entries) => {
+      if (entries[0].isIntersecting) {
+        setLoading(true);
+        console.log("max", max);
+        console.log("load more");
+        handleLoadMore();
+      }
+    });
+    if (node) observer.current.observe(node);
+  });
+
   const handleClose = () => setShow(false);
   const handleShow = (data) => {
     setPreview(data);
     setShow(true);
   };
-  //   console.log("page", page);
-  const innerHeigh = window.innerHeight;
+
+  //CEK INI
+  //   useEffect(() => {
+  //     setPage(1);
+  //     dispatch(
+  //       getMovies(
+  //         history.location.state != undefined
+  //           ? history.location.state.search
+  //           : "Batman",
+  //         page,
+  //         1
+  //       )
+  //     );
+  //     return () => dispatch(resetMovies());
+  //   }, []);
+  // DAN INI
   useEffect(() => {
-    // console.log(scrollPosition, window.innerHeigth);
+    console.log("listmovies", listMovies);
+    setPage(1);
+    setMax(false);
     dispatch(
       getMovies(
         history.location.state != undefined
           ? history.location.state.search
           : "Batman",
-        page
+        1,
+        1
       )
     );
-    return () => dispatch(resetMovies());
   }, [history.location.state]);
 
   useEffect(() => {
-    console.log("innerHeigh", innerHeigh);
-  }, [innerHeigh]);
+    setMovies(listMovies.data.Search);
+  }, [listMovies]);
 
   const handleLoadMore = () => {
-    console.log("Load More bos");
-    // console.log("page", page);
+    setPage(page + 1);
     dispatch(
-      loadMore(
+      getMovies(
         history.location.state != undefined
           ? history.location.state.search
           : "Batman",
-        page
+        page + 1,
+        0
       )
     ).then((res) => {
       console.log("res", res);
+      const newObj = res.Search;
+      res.Response == "True"
+        ? setMovies((old) => [...old, ...newObj])
+        : setMax(true);
+      setLoading(false);
     });
+  };
+  const handleScroll = (e) => {
+    const target = e.target;
+    console.log(target.scrollHeight);
   };
   return (
     <div>
@@ -83,50 +128,74 @@ function App({ movies }) {
       </Modal>
 
       <Container>
-        {movies.data.Search
-          ? movies.data.Search.map((res) => {
-              return (
-                <Card key={res.imdbID} style={{ marginBottom: "5px" }}>
-                  <Card.Body style={{ padding: "0", minHeight: "50px" }}>
-                    <Card.Text>
-                      <Image
-                        style={{ height: "50px", maxWidth: "35px" }}
-                        src={res.Poster}
-                        fluid
-                        onClick={() => handleShow(res)}
-                      />
-                      <span
-                        onClick={() =>
-                          history.push({
-                            pathname: "/single",
-                            state: { ID: res.imdbID },
-                          })
-                        }
-                      >
-                        {" " + res.Title} ({res.Year})
-                      </span>
-                    </Card.Text>
-                  </Card.Body>
-                </Card>
-              );
+        {movies
+          ? movies.map((res, index) => {
+              if (movies.length === index + 1) {
+                return (
+                  <div key={res.imdbID} ref={lastBookElementRef}>
+                    <Card style={{ marginBottom: "5px" }}>
+                      <Card.Body style={{ padding: "0", minHeight: "50px" }}>
+                        <Card.Text>
+                          <Image
+                            style={{ height: "50px", maxWidth: "35px" }}
+                            src={res.Poster}
+                            fluid
+                            onClick={() => handleShow(res)}
+                          />
+                          <span
+                            onClick={() =>
+                              history.push({
+                                pathname: "/single",
+                                state: { ID: res.imdbID },
+                              })
+                            }
+                          >
+                            {" " + res.Title} ({res.Year})
+                          </span>
+                        </Card.Text>
+                      </Card.Body>
+                    </Card>
+                  </div>
+                );
+              } else {
+                return (
+                  <div key={res.imdbID}>
+                    <Card style={{ marginBottom: "5px" }}>
+                      <Card.Body style={{ padding: "0", minHeight: "50px" }}>
+                        <Card.Text>
+                          <Image
+                            style={{ height: "50px", maxWidth: "35px" }}
+                            src={res.Poster}
+                            fluid
+                            onClick={() => handleShow(res)}
+                          />
+                          <span
+                            onClick={() =>
+                              history.push({
+                                pathname: "/single",
+                                state: { ID: res.imdbID },
+                              })
+                            }
+                          >
+                            {" " + res.Title} ({res.Year})
+                          </span>
+                        </Card.Text>
+                      </Card.Body>
+                    </Card>
+                  </div>
+                );
+              }
             })
-          : movies.data.Error}
-        <Button
-          onClick={() => {
-            setPage(page + 1);
-            handleLoadMore();
-          }}
-        >
-          Load More
-        </Button>
+          : "No data found"}
+        {loading && "Loading ..."}
       </Container>
     </div>
   );
 }
 
-const mapStateToProps = (state /*, ownProps*/) => {
+const mapStateToProps = (state) => {
   return {
-    movies: state.movies,
+    listMovies: state.movies,
   };
 };
 

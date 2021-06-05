@@ -3,7 +3,6 @@ import { useHistory } from "react-router-dom";
 import { useDispatch } from "react-redux";
 import {
   Container,
-  //   Button,
   Navbar,
   Nav,
   NavDropdown,
@@ -30,10 +29,6 @@ function Layout(props) {
     dispatch(autoComplete(value)).then(
       (res) => res.Search && setListAutoComplete(res.Search)
     );
-
-    // dispatch(updateBasicDisc(values, ID)).then((res) => {
-    //         res.error === true ? alert(res.message) : history.push("/program");
-    //       })
   };
   const handleSubmit = (e, values) => {
     console.log("YG DI CARI : ", search);
@@ -68,15 +63,6 @@ function Layout(props) {
             handleSubmit(e);
           }}
         >
-          {/* <FormControl
-            required
-            type="text"
-            placeholder="Search"
-            className="mr-sm-2"
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-          /> */}
-          {/* <div style={{ width: 300 }}> */}
           <Autocomplete
             freeSolo
             disableClearable
@@ -94,40 +80,15 @@ function Layout(props) {
                   InputProps={{ ...params.InputProps, type: "search" }}
                   onChange={(e) => {
                     setSearch(e.target.value);
-                    handleAutoComplete(e.target.value);
+                    // handleAutoComplete(e.target.value);
                   }}
                 />
-                {/* <Button
-                    variant="outline-success"
-                    type="submit"
-                    // onClick={(e) => {
-                    //   e.preventDefault();
-                    //   handleSubmit();
-                    // }}
-                  >
-                    Search
-                  </Button> */}
-                <Button
-                  type="submit"
-                  variant="contained"
-                  color="primary"
-                  //   className={classes.submit}
-                >
+                <Button type="submit" variant="contained" color="primary">
                   Cari
                 </Button>
               </div>
             )}
           />
-
-          {/* <Button
-            type="submit"
-            variant="contained"
-            color="primary"
-            //   className={classes.submit}
-          >
-            Submit
-          </Button> */}
-          {/* </div> */}
         </form>
       </Navbar>
       {props.children}
