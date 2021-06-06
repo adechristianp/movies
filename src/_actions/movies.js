@@ -30,7 +30,7 @@ export function resetDetailMovies() {
 
 export function getMovies(DATA, page, initial) {
   const url =
-    "http://www.omdbapi.com/?apikey=faf7e5bb&s=" + DATA + "&page=" + page;
+    "https://www.omdbapi.com/?apikey=79a5999f&s=" + DATA + "&page=" + page;
   return (dispatch) =>
     axios
       .get(url)
@@ -47,7 +47,7 @@ export function getMovies(DATA, page, initial) {
 export function getDetailMovies(ID) {
   return (dispatch) =>
     axios
-      .get("http://www.omdbapi.com/?apikey=faf7e5bb&i=" + ID)
+      .get("https://www.omdbapi.com/?apikey=79a5999f&i=" + ID)
       .then((res) => {
         dispatch(detailMovies(res.data));
       })
@@ -57,7 +57,7 @@ export function getDetailMovies(ID) {
 }
 
 export function autoComplete(DATA) {
-  const url = "http://www.omdbapi.com/?apikey=faf7e5bb&s=" + DATA + "&page=1";
+  const url = "https://www.omdbapi.com/?apikey=79a5999f&s=" + DATA + "&page=1";
   return (dispatch) =>
     axios.get(url).then((res) => {
       return res.data;
