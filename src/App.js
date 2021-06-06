@@ -24,7 +24,3 @@ export default function App() {
     </Router>
   );
 }
-
-export const sum = (a, b) => {
-  return a + b;
-};
