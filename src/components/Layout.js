@@ -24,14 +24,16 @@ function Layout(props) {
 
   const [search, setSearch] = useState("");
   const [listAutoComplete, setListAutoComplete] = useState([]);
+
   const handleAutoComplete = (value) => {
     console.log("autocompletevalue", value);
     dispatch(autoComplete(value)).then(
       (res) => res.Search && setListAutoComplete(res.Search)
     );
   };
-  const handleSubmit = (e, values) => {
-    console.log("YG DI CARI : ", search);
+
+  //   const handleSubmit = (e, values) => {
+  const handleSubmit = () => {
     dispatch(resetMovies());
     history.push({ pathname: "/", state: { search: search } });
   };

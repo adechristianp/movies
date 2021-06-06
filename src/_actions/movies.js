@@ -29,18 +29,23 @@ export function resetDetailMovies() {
 }
 
 export function getMovies(DATA, page, initial) {
-  console.log("PAGE: ", page);
+  console.log("go get movies page: ", page);
   const url =
     "http://www.omdbapi.com/?apikey=faf7e5bb&s=" + DATA + "&page=" + page;
-  let source = axios.CancelToken.source();
   return (dispatch) =>
     axios
-      .get(url, {
-        cancelToken: source.token,
-      })
+      .get(url)
       .then((res) => {
+        console.log("___________res action", res.data);
         initial === 1 && dispatch(movies(res.data));
         return res.data;
+      })
+      .catch((e) => {
+        initial === 1 && dispatch(movies(e.response.data));
+        return e.response.data;
+
+        // console.log("e___", e.response);
+        // return e;
       });
 }
 
@@ -54,8 +59,19 @@ export function getDetailMovies(ID) {
 
 export function autoComplete(DATA) {
   const url = "http://www.omdbapi.com/?apikey=faf7e5bb&s=" + DATA + "&page=1";
+  //   let source = axios.CancelToken.source();
   return (dispatch) =>
-    axios.get(url).then((res) => {
-      return res.data;
-    });
+    axios
+      .get(
+        url
+        //   {
+        //     cancelToken: source.token,
+        //   }
+      )
+      .then((res) => {
+        return res.data;
+      });
+  //   .catch((e) => {
+  //     if (axios.isCancel(0)) return;
+  //   });
 }

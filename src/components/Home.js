@@ -24,6 +24,7 @@ function App({ listMovies }) {
   const [preview, setPreview] = useState([]);
   const [movies, setMovies] = useState([]);
   const [max, setMax] = useState(false);
+  const [error, setError] = useState("");
   const [page, setPage] = useState(1);
   const [search, setSearch] = useState("Batman");
   const [show, setShow] = useState(false);
@@ -66,10 +67,14 @@ function App({ listMovies }) {
   //     return () => dispatch(resetMovies());
   //   }, []);
   // DAN INI
+  console.log("cek history berubah ga setelah search ", history.location.state);
+  console.log("listmovies", listMovies);
+  console.log("error", error);
   useEffect(() => {
-    console.log("listmovies", listMovies);
     setPage(1);
+    setError("");
     setMax(false);
+    listMovies.data.Response == "False" && setError(listMovies.data.Error);
     dispatch(
       getMovies(
         history.location.state != undefined
@@ -96,11 +101,11 @@ function App({ listMovies }) {
         0
       )
     ).then((res) => {
-      console.log("res", res);
+      console.log("res balikan data dari pencarian: ", res);
       const newObj = res.Search;
       res.Response == "True"
         ? setMovies((old) => [...old, ...newObj])
-        : setMax(true);
+        : setError("--Load more: " + res.Error);
       setLoading(false);
     });
   };
@@ -128,6 +133,7 @@ function App({ listMovies }) {
       </Modal>
 
       <Container>
+        {/* {listMovies.data && listMovies.data.Response == "True" */}
         {movies
           ? movies.map((res, index) => {
               if (movies.length === index + 1) {
@@ -186,8 +192,9 @@ function App({ listMovies }) {
                 );
               }
             })
-          : "No data found"}
+          : listMovies.data.Error}
         {loading && "Loading ..."}
+        {error}
       </Container>
     </div>
   );
