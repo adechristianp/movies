@@ -1,45 +1,29 @@
 import React, { useEffect, useState, useRef, useCallback } from "react";
 import { useDispatch, connect } from "react-redux";
 import { useHistory } from "react-router-dom";
-import {
-  Container,
-  Button,
-  Navbar,
-  Nav,
-  NavDropdown,
-  Form,
-  FormControl,
-  Card,
-  Row,
-  Col,
-  Image,
-  Modal,
-} from "react-bootstrap";
+import { Container, Card, Row, Col, Image, Modal } from "react-bootstrap";
 import "bootstrap/dist/css/bootstrap.min.css";
-import { getMovies, resetMovies, loadMore } from "../_actions/movies";
+import { getMovies, resetMovies } from "../_actions/movies";
 
 function App({ listMovies }) {
   const dispatch = useDispatch();
   const history = useHistory();
   const [preview, setPreview] = useState([]);
   const [movies, setMovies] = useState([]);
-  const [max, setMax] = useState(false);
   const [error, setError] = useState("");
   const [page, setPage] = useState(1);
-  const [search, setSearch] = useState("Batman");
+  const [qtyMovies, setQtyMovies] = useState(0);
+  const [totalMovies, setTotalMovies] = useState(0);
   const [show, setShow] = useState(false);
   const [loading, setLoading] = useState(false);
 
   const observer = useRef();
   const lastBookElementRef = useCallback((node) => {
     if (loading) return;
-    if (max) return;
     if (observer.current) observer.current.disconnect();
     observer.current = new IntersectionObserver((entries) => {
       if (entries[0].isIntersecting) {
         setLoading(true);
-        console.log("max", max);
-        console.log("load more");
         handleLoadMore();
       }
     });
@@ -51,67 +35,50 @@ function App({ listMovies }) {
     setPreview(data);
     setShow(true);
   };
-
-  //CEK INI
-  //   useEffect(() => {
-  //     setPage(1);
-  //     dispatch(
-  //       getMovies(
-  //         history.location.state != undefined
-  //           ? history.location.state.search
-  //           : "Batman",
-  //         page,
-  //         1
-  //       )
-  //     );
-  //     return () => dispatch(resetMovies());
-  //   }, []);
-  // DAN INI
-  console.log("cek history berubah ga setelah search ", history.location.state);
-  console.log("listmovies", listMovies);
-  console.log("error", error);
   useEffect(() => {
     setPage(1);
     setError("");
-    setMax(false);
-    listMovies.data.Response == "False" && setError(listMovies.data.Error);
+    setLoading(false);
+    listMovies.data.Response === "False" && setError(listMovies.data.Error);
     dispatch(
       getMovies(
-        history.location.state != undefined
+        history.location.state !== undefined
           ? history.location.state.search
           : "Batman",
         1,
         1
       )
     );
+    return dispatch(resetMovies());
   }, [history.location.state]);
 
   useEffect(() => {
     setMovies(listMovies.data.Search);
+    setTotalMovies(listMovies.data.totalResults);
+    listMovies.data.Search && setQtyMovies(listMovies.data.Search.length);
   }, [listMovies]);
 
   const handleLoadMore = () => {
     setPage(page + 1);
-    dispatch(
-      getMovies(
-        history.location.state != undefined
-          ? history.location.state.search
-          : "Batman",
-        page + 1,
-        0
-      )
-    ).then((res) => {
-      console.log("res balikan data dari pencarian: ", res);
-      const newObj = res.Search;
-      res.Response == "True"
-        ? setMovies((old) => [...old, ...newObj])
-        : setError("--Load more: " + res.Error);
-      setLoading(false);
-    });
-  };
-  const handleScroll = (e) => {
-    const target = e.target;
-    console.log(target.scrollHeight);
+    qtyMovies < parseInt(totalMovies)
+      ? dispatch(
+          getMovies(
+            history.location.state !== undefined
+              ? history.location.state.search
+              : "Batman",
+            page + 1,
+            0
+          )
+        ).then((res) => {
+          const newObj = res.Search;
+          res.Response === "True" &&
+            setQtyMovies(qtyMovies + res.Search.length);
+          res.Response === "True"
+            ? setMovies((old) => [...old, ...newObj])
+            : setError("--Load more: " + res.Error);
+          setLoading(false);
+        })
+      : setError("All data shown.");
   };
   return (
     <div>
@@ -133,7 +100,6 @@ function App({ listMovies }) {
       </Modal>
 
       <Container>
-        {/* {listMovies.data && listMovies.data.Response == "True" */}
         {movies
           ? movies.map((res, index) => {
               if (movies.length === index + 1) {
@@ -193,7 +159,7 @@ function App({ listMovies }) {
               }
             })
           : listMovies.data.Error}
-        {loading && "Loading ..."}
+        {loading && "..."}
         {error}
       </Container>
     </div>
